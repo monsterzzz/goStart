@@ -23,6 +23,7 @@ func main() {
 		}
 	}
 	fmt.Println(string(b))
+	fmt.Println("111")
 
 	//b := string(a)
 	//b = strings.Replace(b," ","1",-1)
