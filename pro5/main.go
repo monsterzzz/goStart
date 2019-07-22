@@ -1,38 +1,29 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"unicode"
+)
 
 func main() {
-	// 消除相邻重复字符串
-	s := "aabbaaxxccasdaw"
-	a := []rune(s)
-
-	for i := 0; i < len(a); i++ {
-		//fmt.Println(string(a))
-		clear(&a[i], &a[i+1])
-
-		if i == len(s)-2 {
-			break
-		}
-	}
-
-	b := make([]rune, 0)
-	for _, v := range a {
-		if v != 0 {
-			b = append(b, v)
-		}
-	}
-	fmt.Println(string(b))
-	fmt.Println("111")
-
-	//b := string(a)
-	//b = strings.Replace(b," ","1",-1)
+	s := "练习 4.8： 修改charcount程序，使用unicode.IsLetter等相关的函数，统计字母、数字等Unicode中不同的字符类别。"
+	m := make(map[string]int)
+	charCount(s, m)
+	fmt.Println(m)
 
 }
 
-func clear(x, y *rune) {
-	var n rune
-	if *x == *y {
-		*y = n
+func charCount(s string, m map[string]int) {
+	r := []rune(s)
+	for _, v := range r {
+		if unicode.IsDigit(v) {
+			m["num"]++
+		} else if unicode.IsLetter(v) {
+			m["letter"]++
+		} else {
+			m["other"]++
+			fmt.Println(v, string(v))
+		}
+		//fmt.Println(v,string(v),unicode.IsDigit(v))
 	}
 }
