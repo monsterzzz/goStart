@@ -56,7 +56,9 @@ func handleConn(user *User) {
 			fmt.Println(">>>quit")
 			return
 		}
-		strLi := strings.SplitN(strData, " ", 1)
+		strLi := strings.SplitN(strData, " ", 2)
+		fmt.Println(strLi)
+
 		switch strLi[0] {
 		case "ls":
 			f, err := ioutil.ReadDir(user.cur)
@@ -70,23 +72,94 @@ func handleConn(user *User) {
 			endStr := strings.Join(fName, "\n") + "\n"
 			io.WriteString(c, endStr)
 		case "cur":
-			io.WriteString(c, user.cur)
+			io.WriteString(c, user.cur+"\n")
 		case "cd":
 			if len(strLi) != 2 {
 				io.WriteString(c, "error command!\n")
 				continue
 			}
-			fmt.Println(user.cur)
-			f, err := os.Stat(user.cur + "/" + strLi[1])
+			//fmt.Println(strLi)
+			//fmt.Println(user.cur)
+			f, err := os.Stat(user.cur + strLi[1])
 			if err != nil {
-				io.WriteString(c, fmt.Sprint(err))
+				io.WriteString(c, "file not exits!")
 				continue
 			}
 			if !f.IsDir() {
 				io.WriteString(c, "dir not exits!\n")
 				continue
 			}
-			user.cur = strLi[1]
+			if strLi[1] == ".." {
+				if user.cur == "./" {
+					continue
+				}
+				//fmt.Println(user.cur[:strings.LastIndexAny(user.cur[:len(user.cur) - 1],"/")])
+				user.cur = user.cur[:strings.LastIndexAny(user.cur[:len(user.cur)-1], "/")]
+				if user.cur == "." {
+					user.cur += "/"
+				}
+			} else {
+				user.cur += strLi[1] + "/"
+			}
+		case "cat":
+			if len(strLi) != 2 {
+				io.WriteString(c, "error command!\n")
+				continue
+			}
+			//fmt.Println(strLi)
+			//fmt.Println(user.cur)
+			f, err := os.Stat(user.cur + strLi[1])
+			if err != nil {
+				io.WriteString(c, "file not exits!\n")
+				continue
+			}
+			if f.IsDir() {
+				io.WriteString(c, "the file name is a dir\n")
+				continue
+			}
+			io.WriteString(c, user.cur+f.Name())
+			fC, err := os.Open(user.cur + f.Name())
+			defer fC.Close()
+			if err != nil {
+				io.WriteString(c, fmt.Sprint(err)+"\n")
+			}
+			b, err := ioutil.ReadAll(fC)
+			if err != nil {
+				io.WriteString(c, fmt.Sprint(err)+"\n")
+			}
+			io.WriteString(c, string(b))
+		case "cp":
+			if len(strLi) != 2 {
+				io.WriteString(c, "error command!\n")
+				continue
+			}
+			//fmt.Println(strLi)
+			//fmt.Println(user.cur)
+			f, err := os.Stat(user.cur + strLi[1])
+			if err != nil {
+				io.WriteString(c, "file not exits!\n")
+				continue
+			}
+			if f.IsDir() {
+				io.WriteString(c, " the file name is a dir\n")
+				continue
+			}
+			block := make([]byte, 255)
+			fC, err := os.Open(user.cur + strLi[1])
+			defer fC.Close()
+			for {
+				if len(block) == 255 {
+					block = make([]byte, 255)
+				}
+				n, err := fC.Read(block)
+				if err == io.EOF {
+					break
+				}
+				if n == 0 {
+					break
+				}
+				c.Write(block)
+			}
 		}
 
 	}
