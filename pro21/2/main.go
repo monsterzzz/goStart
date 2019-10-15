@@ -16,6 +16,14 @@ func main() {
 	r.POST("/user3", postGetParamBody)
 	r.POST("/user4", postFile)
 	r.POST("/user5", manyPostFile)
+
+	g1 := r.Group("v1")
+	{
+		g1.GET("/user0",groupRoute1)
+		//g1.POST("/user0",groupRoute1)
+		g1.Any("/user1",groupRoute2)
+	}
+
 	r.Run()
 }
 
@@ -114,4 +122,33 @@ func manyPostFile(c *gin.Context) {
 	message := fmt.Sprintf("hello,welcome to our %s Test!,upload success!", runtime.FuncForPC(funcName).Name())
 	c.String(200, message)
 	//curl -X POST http://localhost:8080/user4 -F "file=@fileD/hello.txt" -H "Content-Type: multipart/form-data"
+}
+
+
+func groupRoute1(c *gin.Context){
+	funcName, _, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("!")
+	}
+
+	name := c.DefaultQuery("name","guest")
+	sex := c.DefaultQuery("sex","xx")
+
+	message := fmt.Sprintf("hello,%s,%s,welcome to our %s Test!",name,sex ,runtime.FuncForPC(funcName).Name())
+	c.String(200, message)
+}
+
+func groupRoute2(c *gin.Context){
+	funcName, _, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("!")
+	}
+
+	name := c.DefaultQuery("name","guest")
+	sex := c.DefaultQuery("sex","xx")
+
+	method := c.Request.Method
+
+	message := fmt.Sprintf("hello,%s,%s,welcome to our %s Test!,your method is %s",name,sex ,runtime.FuncForPC(funcName).Name(),method)
+	c.String(200, message)
 }
